@@ -1,1 +1,118 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>File Compressor</title>
+    <style>
+      /* Basic CSS styles */
+      body {
+        font-family: Arial, sans-serif;
+        margin: 0;
+        padding: 20px;
+        background-color: aquamarine;
+        height: 100vh;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        flex-direction: column;
+      }
+      h1 {
+        text-align: center;
+      }
+      .container {
+        max-width: 600px;
+        margin: 0 auto;
+      }
+      .form-group {
+        margin-bottom: 20px;
+      }
+      .button {
+        padding: 10px 20px;
+        background-color: #007bff;
+        color: white;
+        border: none;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+      }
+      .button i {
+        margin-right: 5px;
+      }
+      .icon {
+        margin-right: 5px;
+      }
+      input[file] {
+        background-color: transparent;
+        height: 10px;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <h1>File Compressor</h1>
+      <div class="form-group">
+        <label for="file">Select File:</label>
+        <input type="file" id="file" accept=".pdf" multiple />
+      </div>
+      <div class="form-group">
+        <label for="targetSize">Target Size (MB):</label>
+        <input type="number" id="targetSize" min="1" step="1" value="1" />
+      </div>
+      <button class="button" onclick="compressFiles()">
+        <i class="icon">&#128190;</i> Compress
+      </button>
+    </div>
 
+    <h2>Compressed Files:</h2>
+    <ul id="compressedFilesList">
+      <!-- Compressed files will be dynamically added here -->
+    </ul>
+
+    <script>
+      function compressFiles() {
+        const files = document.getElementById("file").files;
+        const targetSize = document.getElementById("targetSize").value;
+
+        if (files.length === 0) {
+          alert("Please select at least one file.");
+          return;
+        }
+
+        const formData = new FormData();
+        for (let i = 0; i < files.length; i++) {
+          formData.append("files[]", files[i]);
+        }
+        formData.append("targetSize", targetSize);
+
+        fetch("/compress", {
+          method: "POST",
+          body: formData,
+        })
+          .then((response) => response.json())
+          .then((data) => {
+            alert(data.message);
+            // Update compressed files list
+            updateCompressedFilesList(data.compressed_files);
+          })
+          .catch((error) => {
+            console.error("Error:", error);
+            alert("An error occurred during compression.");
+          });
+      }
+
+      function updateCompressedFilesList(compressedFiles) {
+        const list = document.getElementById("compressedFilesList");
+        list.innerHTML = ""; // Clear previous list items
+        compressedFiles.forEach((file) => {
+          const listItem = document.createElement("li");
+          const link = document.createElement("a");
+          link.href = "/download/" + file;
+          link.textContent = file;
+          listItem.appendChild(link);
+          list.appendChild(listItem);
+        });
+      }
+    </script>
+  </body>
+</html>
